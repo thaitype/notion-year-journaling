@@ -29,23 +29,6 @@ export const updatePageProp = async (pageId: string, title: string) => {
   return response;
 }
 
-export const addPage = async () => {
-  const response = await notion.pages.create({
-    parent: {
-      database_id: dailyJournalDatabaseId,
-    },
-    properties: {
-      Date: {
-        type: 'date',
-        date: {
-          start: '2021-05-11',
-        },
-      },
-    },
-  });
-  console.log(response);
-};
-
 export const updateDateToTitleWithinPassWeek = async (context: InvocationContext) => {
   const databaseId = dailyJournalDatabaseId;
   const response = await notion.databases.query({
@@ -61,14 +44,12 @@ export const updateDateToTitleWithinPassWeek = async (context: InvocationContext
         {
           property: 'Date',
           date: {
-            // past_month: {},
             on_or_after: dayjs(new Date()).subtract(7, 'day').toISOString() ,
           }
         },
         {
           property: 'Date',
           date: {
-            // past_month: {},
             on_or_before: dayjs(new Date()).add(2, 'day').toISOString() ,
           }
         },
