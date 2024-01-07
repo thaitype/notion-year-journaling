@@ -8,7 +8,8 @@
     "build:prod": "run-s build && npm prune --production",
     "lint": "tsc --noEmit",
     "start": "tsc && func start",
-    "dev": "cross-env NAMMATHAM_ENV=development tsx watch src/main.ts"
+    "dev": "cross-env NAMMATHAM_ENV=development tsx watch src/main.ts",
+    "azurite": "pnpx azurite --silent --location ./.azurite --debug ./.azurite/debug.log"
   },
   "author": "Thada Wangthammang",
   "license": "MIT",
