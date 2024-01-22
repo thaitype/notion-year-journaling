@@ -29,7 +29,24 @@ export const updatePageProp = async (pageId: string, title: string) => {
   return response;
 }
 
-export const updateDateToTitleWithinPassWeek = async (context: InvocationContext) => {
+export interface UpdateDateTitleOptions {
+  /**
+   * Number of days to go back from today
+   *
+   * @default 7
+   */
+  numberPassedDays?: number;
+  /**
+   * Number of days to go forward from today
+   *
+   * @default 2
+   */
+  numberFutureDays?: number;
+}
+
+export async function updateDateToTitle(context: InvocationContext, options?: UpdateDateTitleOptions) {
+  const numberPassedDays = options?.numberPassedDays ?? 7;
+  const numberFutureDays = options?.numberFutureDays ?? 2;
   const databaseId = dailyJournalDatabaseId;
   const response = await notion.databases.query({
     database_id: databaseId,
@@ -44,13 +61,13 @@ export const updateDateToTitleWithinPassWeek = async (context: InvocationContext
         {
           property: 'Date',
           date: {
-            on_or_after: dayjs(new Date()).subtract(7, 'day').toISOString() ,
+            on_or_after: dayjs(new Date()).subtract(numberPassedDays, 'day').toISOString() ,
           }
         },
         {
           property: 'Date',
           date: {
-            on_or_before: dayjs(new Date()).add(2, 'day').toISOString() ,
+            on_or_before: dayjs(new Date()).add(numberFutureDays, 'day').toISOString() ,
           }
         },
       ],
@@ -74,4 +91,5 @@ export const updateDateToTitleWithinPassWeek = async (context: InvocationContext
     }
 
   }
+  return `Updated ${numberPassedDays} days before and ${numberFutureDays} days after today, please check your Notion database.`;
 };

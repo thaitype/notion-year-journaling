@@ -1,5 +1,5 @@
 import { func } from '../nammatham';
-import { updateDateToTitleWithinPassWeek } from '../services/notion.service';
+import { updateDateToTitle } from '../services/notion.service';
 
 export default func
   .timer('watcher', {
@@ -11,5 +11,5 @@ export default func
   .handler(async ({ trigger, context }) => {
     context.info('Timer triggered!');
     trigger.isPastDue ? context.info('Timer is past due!') : null;
-    await updateDateToTitleWithinPassWeek(context);
+    await updateDateToTitle(context);
   });
