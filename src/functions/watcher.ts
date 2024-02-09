@@ -1,5 +1,6 @@
+import { dailyJournalDb } from '../bootstrap';
 import { func } from '../nammatham';
-import { updateDateToTitle } from '../services/notion.service';
+import { YearJournalService } from '../services/notion.service';
 
 export default func
   .timer('watcher', {
@@ -11,5 +12,7 @@ export default func
   .handler(async ({ trigger, context }) => {
     context.info('Timer triggered!');
     trigger.isPastDue ? context.info('Timer is past due!') : null;
-    await updateDateToTitle(context);
+    await new YearJournalService(dailyJournalDb, {
+      logger: context,
+    }).updateDateToTitle();
   });

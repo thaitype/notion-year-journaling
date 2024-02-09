@@ -8,41 +8,56 @@ type WithAuth<P> = P & {
   auth?: string;
 };
 
-export class NotionDatabaseBaseClient {
+export class NotionDatabase {
   constructor(
     /**
      * The Notion Client
      */
-    protected readonly notion: NotionClient,
+    public readonly notion: NotionClient,
     /**
      * The database id
      */
-    protected readonly databaseId: string
+    public readonly databaseId: string
   ) {}
 
-  query(args: WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>): Promise<QueryDatabaseResponse> {
+  query(args?: WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>): Promise<QueryDatabaseResponse> {
     return this.notion.databases.query({
       database_id: this.databaseId,
       ...args,
     });
   }
+
+  get page(){
+    return new NotionPage(this.notion);
+  }
 }
 
-export class NotionDatabaseClient extends NotionDatabaseBaseClient {
-  updateTitle() {}
-}
+export class NotionPage {
+  constructor(
+    /**
+     * The Notion Client
+     */
+    public readonly notion: NotionClient,
+  ) {}
 
-const notion = new NotionClient({ auth: process.env.NOTION_KEY });
-const client = new NotionDatabaseClient(notion, 'databaseId')
-  .query({
-    filter: {
-      and: [
-        {
-          property: 'Date',
-          date: {
-            is_not_empty: true,
-          },
+  updateTitle(args: {
+    pageId: string;
+    title: string;
+    propName?: string;
+  }) {
+    return this.notion.pages.update({
+      page_id: args.pageId,
+      properties: {
+        [args.propName ?? 'Name']: {
+          title: [
+            {
+              text: {
+                content: args.title,
+              },
+            },
+          ],
         },
-      ],
-    },
-  })
+      },
+    });
+  }
+}

@@ -1,5 +1,6 @@
+import { dailyJournalDb } from '../bootstrap';
 import { func } from '../nammatham';
-import { updateDateToTitle } from '../services/notion.service';
+import { YearJournalService } from '../services/notion.service';
 
 function parseIntOrUndefined(s: string | undefined) {
   if (s === undefined) {
@@ -10,16 +11,18 @@ function parseIntOrUndefined(s: string | undefined) {
 
 export default func
   .httpGet('manual', {
-    authLevel: 'function'
+    authLevel: 'function',
   })
   .handler(async ({ trigger, context }) => {
     const numberPassedDays = parseIntOrUndefined(trigger.query.get('numberPassedDays') ?? undefined);
     const numberFutureDays = parseIntOrUndefined(trigger.query.get('numberFutureDays') ?? undefined);
-    const result = await updateDateToTitle(context, {
+    const result = await new YearJournalService(dailyJournalDb, {
+      logger: context,
+    }).updateDateToTitle({
       numberPassedDays,
       numberFutureDays,
     });
     return {
-      body: result
-    }
+      body: result,
+    };
   });
