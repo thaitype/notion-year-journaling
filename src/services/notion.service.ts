@@ -30,7 +30,7 @@ export class YearJournalService {
   async updateDateToTitle(options?: UpdateDateTitleOptions) {
     const numberPassedDays = options?.numberPassedDays ?? 7;
     const numberFutureDays = options?.numberFutureDays ?? 2;
-    const response = await this.dailyJournalDb.query({
+    const pages = await this.dailyJournalDb.query({
       filter: {
         and: [
           {
@@ -54,23 +54,20 @@ export class YearJournalService {
         ],
       },
     });
-    for (const page of response.results) {
-      if (NotionPage.isPageObjectResponse(page)) {
-        const props = page.properties;
-        if (props['Date'].type === 'date') {
-          if (!props['Date'].date) continue;
-          const title =
-            props['Name'].type === 'title' ? props['Name'].title[0]?.plain_text?.trim() : '';
-          const dateString = props['Date'].date.start;
-          const newTitle = dayjs(dateString, 'YYYY-MM-DD').format('MMM DD, YYYY');
-          if (title === newTitle) {
-            this.logger.info(`Skipping date: ${dateString} with id: ${page.id}`);
-            continue;
-          }
-          this.logger.info(`Updating title of date: ${dateString} to '${newTitle}', with id: ${page.id}`);
-          await this.dailyJournalDb.page.updateTitle({ pageId: page.id, title: newTitle });
-          this.logger.info(`Updated title`);
+    for (const page of pages) {
+      const props = page.properties;
+      if (props['Date']?.type === 'date') {
+        if (!props['Date'].date) continue;
+        const title = props['Name']?.type === 'title' ? props['Name'].title[0]?.plain_text?.trim() : '';
+        const dateString = props['Date'].date.start;
+        const newTitle = dayjs(dateString, 'YYYY-MM-DD').format('MMM DD, YYYY');
+        if (title === newTitle) {
+          this.logger.info(`Skipping date: ${dateString} with id: ${page.id}`);
+          continue;
         }
+        this.logger.info(`Updating title of date: ${dateString} to '${newTitle}', with id: ${page.id}`);
+        await this.dailyJournalDb.page.updateTitle({ pageId: page.id, title: newTitle });
+        this.logger.info(`Updated title`);
       }
     }
     return `Updated ${numberPassedDays} days before and ${numberFutureDays} days after today, please check your Notion database.`;
