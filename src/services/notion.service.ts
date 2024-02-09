@@ -11,7 +11,6 @@ function isPageObjectResponse(arg: any): arg is PageObjectResponse {
 const dailyJournalDatabaseId = process.env.DAILY_JOURNAL_DATABASE_ID ?? '';
 
 export const updatePageProp = async (pageId: string, title: string) => {
-
   const response = await notion.pages.update({
     page_id: pageId,
     properties: {
