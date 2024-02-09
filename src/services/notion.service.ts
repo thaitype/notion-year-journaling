@@ -1,13 +1,6 @@
-import { InvocationContext } from '@azure/functions';
-
-import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import dayjs from 'dayjs';
 import { NotionDatabase, NotionPage } from '../notion/notion-database-client';
 import { Logger } from '../types';
-
-function isPageObjectResponse(arg: any): arg is PageObjectResponse {
-  return arg.object === 'page' && 'properties' in arg;
-}
 
 export interface UpdateDateTitleOptions {
   /**
@@ -62,12 +55,13 @@ export class YearJournalService {
       },
     });
     for (const page of response.results) {
-      if (isPageObjectResponse(page)) {
-        if (page.properties['Date'].type === 'date') {
-          if (!page.properties['Date'].date) continue;
+      if (NotionPage.isPageObjectResponse(page)) {
+        const props = page.properties;
+        if (props['Date'].type === 'date') {
+          if (!props['Date'].date) continue;
           const title =
-            page.properties['Name'].type === 'title' ? page.properties['Name'].title[0]?.plain_text?.trim() : '';
-          const dateString = page.properties['Date'].date.start;
+            props['Name'].type === 'title' ? props['Name'].title[0]?.plain_text?.trim() : '';
+          const dateString = props['Date'].date.start;
           const newTitle = dayjs(dateString, 'YYYY-MM-DD').format('MMM DD, YYYY');
           if (title === newTitle) {
             this.logger.info(`Skipping date: ${dateString} with id: ${page.id}`);

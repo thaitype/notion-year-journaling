@@ -1,5 +1,5 @@
 import { Client as NotionClient } from '@notionhq/client';
-import { QueryDatabaseParameters, QueryDatabaseResponse } from '@notionhq/client/build/src/api-endpoints';
+import { QueryDatabaseParameters, QueryDatabaseResponse, PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
 /**
  * From @notionhq/client
@@ -33,12 +33,17 @@ export class NotionDatabase {
 }
 
 export class NotionPage {
+
   constructor(
     /**
      * The Notion Client
      */
     public readonly notion: NotionClient,
   ) {}
+
+  static isPageObjectResponse(arg: any): arg is PageObjectResponse {
+    return arg.object === 'page' && 'properties' in arg;
+  }
 
   updateTitle(args: {
     pageId: string;
