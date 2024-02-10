@@ -12,7 +12,7 @@ export default func
   .handler(async ({ trigger, context }) => {
     context.info('Timer triggered!');
     trigger.isPastDue ? context.info('Timer is past due!') : null;
-    await new YearJournalService(dailyJournalDb, {
-      logger: context,
-    }).updateDateToTitle();
+    // await new YearJournalService(dailyJournalDb, {
+    //   logger: context,
+    // }).updateDateToTitle();
   });

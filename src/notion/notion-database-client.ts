@@ -1,20 +1,11 @@
 import { Client as NotionClient } from '@notionhq/client';
-import {
-  QueryDatabaseParameters,
-  QueryDatabaseResponse,
-  PageObjectResponse,
-} from '@notionhq/client/build/src/api-endpoints';
-import { DateProp, NumberProp, PageProperties, TitleProp, TypedPageObjectResponse } from './types';
-
-/**
- * From @notionhq/client
- */
-type WithAuth<P> = P & {
-  auth?: string;
-};
+import { QueryDatabaseParameters, PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import { MapResponseToNotionType, PageProperties, TypedPageObjectResponse, WithAuth } from './types';
 
 export type InferPropTypes<T> = T extends NotionDatabase<infer U> ? U : never;
 export type InferNotionDatabase<T> = NotionDatabase<InferPropTypes<T>>;
+
+export type NotionDatabaseQueryArgs = WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>;
 
 export class NotionDatabase<T extends Record<string, PageProperties['type']> = Record<string, PageProperties['type']>> {
   propTypes: T = {} as T;
@@ -39,11 +30,43 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
   }
 
   /**
+   * Make sure the propType is correct
+   */
+
+  async validate() {
+    if (Object.values(this.propTypes).length === 0) {
+      console.log(`Skipping validate because no prop type provided`);
+      return this;
+    }
+
+    const response = await this.notion.databases.retrieve({ database_id: this.databaseId });
+    const remoteProps = response.properties;
+    for (const [propName, propValue] of Object.entries(this.propTypes)) {
+      if (!remoteProps[propName]) {
+        throw new Error(`No property "${propName}" defined in Notion Database Properties`);
+      }
+      if (propName !== remoteProps[propName]?.name) {
+        throw new Error(
+          `Both key and name property should be same!, please check the notion API response schema, https://api.notion.com/v1/databases/{database_id}`
+        );
+      }
+
+      if (propValue !== remoteProps[propName]?.type) {
+        throw new Error(
+          `The property "${propName}" don't match type, (Expected: "${propValue}", Actual: "${remoteProps[propName]?.type}")`
+        );
+      }
+    }
+    console.log('Schema Validated');
+    return this;
+  }
+
+  /**
    * TODO: Handle pagination with Async Iterators later
    */
-  async query(
-    args?: WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>
-  ): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
+  async query(args?: NotionDatabaseQueryArgs): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
+    // Make sure the propType is correct
+    await this.validate();
     const response = await this.notion.databases.query({
       database_id: this.databaseId,
       ...args,
@@ -88,50 +111,3 @@ export class NotionPage {
     });
   }
 }
-
-// export class JournalNotionDatabase<T extends Record<string, PageProperties['type']> = {}> {
-//   props: T = {} as T;
-
-//   schema<const T extends Record<string, PageProperties['type']>>(prop: T) {
-//     return this as unknown as JournalNotionDatabase<T>;
-//   }
-
-//   validate() {
-//     console.log('Validating schema');
-//     return this;
-//   }
-
-//   build() {
-//     this.validate();
-//     return this as JournalNotionDatabase<T>;
-//   }
-
-//   query(): MapResponseToNotionType<T>[] {
-//     return [] as any[];
-//   }
-// }
-
-type MapResponseToNotionType<T extends Record<string, PageProperties['type']>> = {
-  [K in keyof T]: MapTypeToNotionType<T[K]>;
-};
-
-type MapTypeToNotionType<T extends PageProperties['type']> = T extends NumberProp['type']
-  ? NumberProp
-  : T extends TitleProp['type']
-  ? TitleProp
-  : T extends DateProp['type']
-  ? DateProp
-  : never;
-
-// export const db = new JournalNotionDatabase()
-//   .schema({
-//     Name: 'title',
-//     Date: 'date',
-//     Number: 'number',
-//   })
-//   .build();
-
-// const pages = db.query();
-// for (const page of pages) {
-//   console.log(page['Date'].date?.start);
-// }
