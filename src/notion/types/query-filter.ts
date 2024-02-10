@@ -3,12 +3,6 @@ import { Expect, ExpectExtends } from './type-check';
 import { PageProperties } from './notion-database-props';
 
 export type QueryFilterArgs = QueryDatabaseParameters['filter'];
-export type TypedQueryDatabaseParameters<T extends Record<string, PageProperties['type']>> = Omit<
-  QueryDatabaseParameters,
-  'filter'
-> & {
-  filter?: TypedQueryFilterArgs<T>;
-};
 
 export type MapTypePropertyFilter<T extends Record<string, PageProperties['type']>> = {
   [K in keyof T]: {
@@ -23,48 +17,6 @@ type MapTypeToNotionType<TType extends PageProperties['type'], TProp extends key
   : TType extends NonNullable<DatePropFilter<TType>['type']>
   ? DatePropFilter<TProp>
   : never;
-
-// type MapTypeToNotionType<T extends PageProperties['type']> = T extends NonNullable<
-//   NumberPropFilter<T>['type']
-// >
-//   ? NumberPropFilter<T>
-//   : T extends NonNullable<DatePropFilter<T>['type']>
-//   ? DatePropFilter<T>
-//   : never;
-
-/**
- * From @notionhq/client
- */
-export type TypedQueryFilterArgs<T extends Record<string, PageProperties['type']>> =
-  | {
-      or: Array<
-        | MapTypePropertyFilter<T>
-        | TimestampCreatedTimeFilter
-        | TimestampLastEditedTimeFilter
-        | {
-            or: Array<MapTypePropertyFilter<T>>;
-          }
-        | {
-            and: Array<MapTypePropertyFilter<T>>;
-          }
-      >;
-    }
-  | {
-      and: Array<
-        | MapTypePropertyFilter<T>
-        | TimestampCreatedTimeFilter
-        | TimestampLastEditedTimeFilter
-        | {
-            or: Array<MapTypePropertyFilter<T>>;
-          }
-        | {
-            and: Array<MapTypePropertyFilter<T>>;
-          }
-      >;
-    }
-  | MapTypePropertyFilter<T>
-  | TimestampCreatedTimeFilter
-  | TimestampLastEditedTimeFilter;
 
 export interface CommonTypeFilter {
   property: string;
@@ -93,128 +45,6 @@ type Test = [
   Expect<ExpectExtends<QueryFilterArgs, NumberPropFilter>>,
   Expect<ExpectExtends<QueryFilterArgs, DatePropFilter>>
 ];
-
-// ------------------------------- Support Types
-
-export type PropertyFilter =
-  | {
-      title: TextPropertyFilter;
-      property: string;
-      type?: 'title';
-    }
-  | {
-      rich_text: TextPropertyFilter;
-      property: string;
-      type?: 'rich_text';
-    }
-  | {
-      number: NumberPropertyFilter;
-      property: string;
-      type?: 'number';
-    }
-  | {
-      checkbox: CheckboxPropertyFilter;
-      property: string;
-      type?: 'checkbox';
-    }
-  | {
-      select: SelectPropertyFilter;
-      property: string;
-      type?: 'select';
-    }
-  | {
-      multi_select: MultiSelectPropertyFilter;
-      property: string;
-      type?: 'multi_select';
-    }
-  | {
-      status: StatusPropertyFilter;
-      property: string;
-      type?: 'status';
-    }
-  | {
-      date: DatePropertyFilter;
-      property: string;
-      type?: 'date';
-    }
-  | {
-      people: PeoplePropertyFilter;
-      property: string;
-      type?: 'people';
-    }
-  | {
-      files: ExistencePropertyFilter;
-      property: string;
-      type?: 'files';
-    }
-  | {
-      url: TextPropertyFilter;
-      property: string;
-      type?: 'url';
-    }
-  | {
-      email: TextPropertyFilter;
-      property: string;
-      type?: 'email';
-    }
-  | {
-      phone_number: TextPropertyFilter;
-      property: string;
-      type?: 'phone_number';
-    }
-  | {
-      relation: RelationPropertyFilter;
-      property: string;
-      type?: 'relation';
-    }
-  | {
-      created_by: PeoplePropertyFilter;
-      property: string;
-      type?: 'created_by';
-    }
-  | {
-      created_time: DatePropertyFilter;
-      property: string;
-      type?: 'created_time';
-    }
-  | {
-      last_edited_by: PeoplePropertyFilter;
-      property: string;
-      type?: 'last_edited_by';
-    }
-  | {
-      last_edited_time: DatePropertyFilter;
-      property: string;
-      type?: 'last_edited_time';
-    }
-  | {
-      formula: FormulaPropertyFilter;
-      property: string;
-      type?: 'formula';
-    }
-  | {
-      unique_id: NumberPropertyFilter;
-      property: string;
-      type?: 'unique_id';
-    }
-  | {
-      rollup: RollupPropertyFilter;
-      property: string;
-      type?: 'rollup';
-    };
-
-// Timestamp
-
-type TimestampCreatedTimeFilter = {
-  created_time: DatePropertyFilter;
-  timestamp: 'created_time';
-  type?: 'created_time';
-};
-type TimestampLastEditedTimeFilter = {
-  last_edited_time: DatePropertyFilter;
-  timestamp: 'last_edited_time';
-  type?: 'last_edited_time';
-};
 
 // Sub Type Filter
 type EmptyObject = Record<string, never>;
