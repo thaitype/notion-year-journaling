@@ -116,8 +116,12 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
   }
 
   get page() {
-    return new NotionPage(this.notion, {
-      database_id: this.databaseId,
+    return new NotionPage({
+      notionClient: this.notion,
+      propTypes: this.propTypes,
+      parent: {
+        database_id: this.databaseId,
+      }
     });
   }
 }

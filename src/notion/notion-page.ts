@@ -1,21 +1,32 @@
 import { Client as NotionClient } from '@notionhq/client';
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import type {
-  PageParent,
-} from './types';
+import type { PageParent, PageProperties } from './types';
 import invariant from 'tiny-invariant';
 
-export class NotionPage {
-  constructor(
-    /**
-     * The Notion Client
-     */
-    public readonly notion: NotionClient,
-    /**
-     * Parent of the page
-     */
-    public readonly parent?: PageParent
-    ) {}
+export type PropertyPredidcate<T extends Record<string, PageProperties['type']>> = (props: any) => any;
+
+export interface NotionPageOptions<T extends Record<string, PageProperties['type']>> {
+  notionClient: NotionClient;
+  parent?: PageParent;
+  propTypes?: T;
+}
+
+export class NotionPage<T extends Record<string, PageProperties['type']> = Record<string, PageProperties['type']>> {
+  propTypes: T = {} as T;
+  /**
+   * The Notion Client
+   */
+  public readonly notion: NotionClient;
+  /**
+   * Parent of the page
+   */
+  public readonly parent?: PageParent;
+
+  constructor(protected readonly options: NotionPageOptions<T>) {
+    this.notion = options.notionClient;
+    this.parent = options.parent;
+    this.propTypes = options.propTypes ?? ({} as T);
+  }
 
   static isPageObjectResponse(arg: any): arg is PageObjectResponse {
     return arg.object === 'page' && 'properties' in arg;
@@ -43,7 +54,7 @@ export class NotionPage {
    *
    * Ref: https://developers.notion.com/reference/post-page
    */
-  create(args: { title: string }){
+  create(args: { title: string }) {
     invariant(this.parent, `Parent is required to create a page`);
     return this.notion.pages.create({
       parent: this.parent,
@@ -60,6 +71,4 @@ export class NotionPage {
       },
     });
   }
-
-
 }
