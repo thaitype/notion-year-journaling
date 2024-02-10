@@ -1,10 +1,19 @@
 import { Client as NotionClient } from '@notionhq/client';
 import { QueryDatabaseParameters, PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import { MapResponseToNotionType, PageProperties, TypedPageObjectResponse, WithAuth } from './types';
+import {
+  MapResponseToNotionType,
+  MapTypePropertyFilter,
+  PageProperties,
+  PropertyFilter,
+  TypedPageObjectResponse,
+  TypedQueryDatabaseParameters,
+  WithAuth,
+} from './types';
 
 export type InferPropTypes<T> = T extends NotionDatabase<infer U> ? U : never;
 export type InferNotionDatabase<T> = NotionDatabase<InferPropTypes<T>>;
 
+// export type NotionDatabaseQueryArgs<T extends Record<string, PageProperties['type']>> = WithAuth<Omit<TypedQueryDatabaseParameters<T>, 'database_id'>>;
 export type NotionDatabaseQueryArgs = WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>;
 
 export class NotionDatabase<T extends Record<string, PageProperties['type']> = Record<string, PageProperties['type']>> {
@@ -64,12 +73,15 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
   /**
    * TODO: Handle pagination with Async Iterators later
    */
-  async query(args?: NotionDatabaseQueryArgs): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
+  async query(
+    func?: (props: MapTypePropertyFilter<T>) => NotionDatabaseQueryArgs
+  ): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
     // Make sure the propType is correct
     await this.validate();
     const response = await this.notion.databases.query({
       database_id: this.databaseId,
-      ...args,
+      // TODO: Convert type later, FIX ME!!
+      ...(func as any),
     });
     const results = response.results.filter(page => NotionPage.isPageObjectResponse(page)) as TypedPageObjectResponse<
       MapResponseToNotionType<T>

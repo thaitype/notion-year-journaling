@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import { NotionDatabase } from '../notion';
 import { Logger } from '../types';
 import { DailyJournalDatabase } from '../bootstrap';
 
@@ -31,30 +30,27 @@ export class YearJournalService {
   async updateDateToTitle(options?: UpdateDateTitleOptions) {
     const numberPassedDays = options?.numberPassedDays ?? 7;
     const numberFutureDays = options?.numberFutureDays ?? 2;
-    const pages = await this.dailyJournalDb.query({
+    const pages = await this.dailyJournalDb.query(props => ({
       filter: {
         and: [
-          {
-            property: 'Date',
+          props['Date'].rule({
             date: {
               is_not_empty: true,
             },
-          },
-          {
-            property: 'Date',
+          }),
+          props['Date'].rule({
             date: {
               on_or_after: dayjs(new Date()).subtract(numberPassedDays, 'day').toISOString(),
             },
-          },
-          {
-            property: 'Date',
+          }),
+          props['Date'].rule({
             date: {
               on_or_before: dayjs(new Date()).add(numberFutureDays, 'day').toISOString(),
             },
-          },
+          }),
         ],
       },
-    });
+    }));
     for (const page of pages) {
       const props = page.properties;
       const title = props['Name'].title[0]?.plain_text?.trim();
