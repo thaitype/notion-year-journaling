@@ -13,6 +13,9 @@ type WithAuth<P> = P & {
   auth?: string;
 };
 
+export type InferPropTypes<T> = T extends NotionDatabase<infer U> ? U : never;
+export type InferNotionDatabase<T> = NotionDatabase<InferPropTypes<T>>;
+
 export class NotionDatabase<T extends Record<string, PageProperties['type']> = Record<string, PageProperties['type']>> {
   propTypes: T = {} as T;
 
@@ -31,20 +34,23 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
     this.propTypes = {
       ...this.propTypes,
       ...props,
-    }
+    };
     return this as unknown as NotionDatabase<T>;
   }
 
   /**
    * TODO: Handle pagination with Async Iterators later
    */
-  // async query(args?: WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>): Promise<PageObjectResponse[]> {
-  async query(args?: any): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
+  async query(
+    args?: WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>
+  ): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
     const response = await this.notion.databases.query({
       database_id: this.databaseId,
       ...args,
     });
-    const results = response.results.filter(page => NotionPage.isPageObjectResponse(page)) as TypedPageObjectResponse<MapResponseToNotionType<T>>[];
+    const results = response.results.filter(page => NotionPage.isPageObjectResponse(page)) as TypedPageObjectResponse<
+      MapResponseToNotionType<T>
+    >[];
     return results;
   }
 

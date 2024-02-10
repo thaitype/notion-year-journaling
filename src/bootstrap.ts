@@ -1,5 +1,5 @@
 import { Client as NotionClient } from '@notionhq/client';
-import { NotionDatabase } from './notion/notion-database-client';
+import { InferNotionDatabase, InferPropTypes, NotionDatabase } from './notion';
 import { schema } from './schema';
 
 export const env = schema.parse(process.env);
@@ -8,3 +8,5 @@ export const dailyJournalDb = new NotionDatabase(notion, env.DAILY_JOURNAL_DATAB
   Name: 'title',
   Date: 'date',
 });
+
+export type DailyJournalDatabase = InferNotionDatabase<typeof dailyJournalDb>;

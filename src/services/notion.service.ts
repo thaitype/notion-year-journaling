@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
-import { NotionDatabase, NotionPage } from '../notion/notion-database-client';
+import { NotionDatabase } from '../notion';
 import { Logger } from '../types';
+import { DailyJournalDatabase } from '../bootstrap';
 
 export interface UpdateDateTitleOptions {
   /**
@@ -23,10 +24,7 @@ export interface NotionServiceOptions {
 
 export class YearJournalService {
   private readonly logger: Logger;
-  constructor(protected dailyJournalDb: NotionDatabase<{
-    'Name': 'title',
-    'Date': 'date'
-  }>, options: NotionServiceOptions) {
+  constructor(protected dailyJournalDb: DailyJournalDatabase, options: NotionServiceOptions) {
     this.logger = options.logger ?? console;
   }
 
