@@ -12,7 +12,6 @@ import type {
 export type InferPropTypes<T> = T extends NotionDatabase<infer U> ? U : never;
 export type InferNotionDatabase<T> = NotionDatabase<InferPropTypes<T>>;
 
-// export type NotionDatabaseQueryArgs<T extends Record<string, PageProperties['type']>> = WithAuth<Omit<TypedQueryDatabaseParameters<T>, 'database_id'>>;
 export type NotionDatabaseQueryArgs = WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>;
 export type QueryPredidcate<T extends Record<string, PageProperties['type']>> = (
   props: MapTypePropertyFilter<T>
@@ -104,6 +103,9 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
             type: propType,
           } as CommonTypeFilter),
       };
+    }
+    if(Object.keys(injectProps).length === 0) {
+      throw new Error(`No prop type provided, please setPropTypes before calling query`);
     }
     return funcOrArgs(injectProps as MapTypePropertyFilter<T>);
   }
