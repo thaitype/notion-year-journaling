@@ -23,7 +23,10 @@ export interface NotionServiceOptions {
 
 export class YearJournalService {
   private readonly logger: Logger;
-  constructor(protected dailyJournalDb: NotionDatabase, options: NotionServiceOptions) {
+  constructor(protected dailyJournalDb: NotionDatabase<{
+    'Name': 'title',
+    'Date': 'date'
+  }>, options: NotionServiceOptions) {
     this.logger = options.logger ?? console;
   }
 
@@ -56,19 +59,16 @@ export class YearJournalService {
     });
     for (const page of pages) {
       const props = page.properties;
-      if (props['Date']?.type === 'date') {
-        if (!props['Date'].date) continue;
-        const title = props['Name']?.type === 'title' ? props['Name'].title[0]?.plain_text?.trim() : '';
-        const dateString = props['Date'].date.start;
-        const newTitle = dayjs(dateString, 'YYYY-MM-DD').format('MMM DD, YYYY');
-        if (title === newTitle) {
-          this.logger.info(`Skipping date: ${dateString} with id: ${page.id}`);
-          continue;
-        }
-        this.logger.info(`Updating title of date: ${dateString} to '${newTitle}', with id: ${page.id}`);
-        await this.dailyJournalDb.page.updateTitle({ pageId: page.id, title: newTitle });
-        this.logger.info(`Updated title`);
+      const title = props['Name'].title[0]?.plain_text?.trim();
+      const dateString = props['Date'].date?.start;
+      const newTitle = dayjs(dateString, 'YYYY-MM-DD').format('MMM DD, YYYY');
+      if (title === newTitle) {
+        this.logger.info(`Skipping date: ${dateString} with id: ${page.id}`);
+        continue;
       }
+      this.logger.info(`Updating title of date: ${dateString} to '${newTitle}', with id: ${page.id}`);
+      await this.dailyJournalDb.page.updateTitle({ pageId: page.id, title: newTitle });
+      this.logger.info(`Updated title`);
     }
     return `Updated ${numberPassedDays} days before and ${numberFutureDays} days after today, please check your Notion database.`;
   }

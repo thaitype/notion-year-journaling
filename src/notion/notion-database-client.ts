@@ -4,6 +4,7 @@ import {
   QueryDatabaseResponse,
   PageObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
+import { DateProp, NumberProp, PageProperties, TitleProp, TypedPageObjectResponse } from './types';
 
 /**
  * From @notionhq/client
@@ -12,7 +13,9 @@ type WithAuth<P> = P & {
   auth?: string;
 };
 
-export class NotionDatabase {
+export class NotionDatabase<T extends Record<string, PageProperties['type']> = Record<string, PageProperties['type']>> {
+  propTypes: T = {} as T;
+
   constructor(
     /**
      * The Notion Client
@@ -24,15 +27,24 @@ export class NotionDatabase {
     public readonly databaseId: string
   ) {}
 
+  setPropTypes<const T extends Record<string, PageProperties['type']>>(props: T) {
+    this.propTypes = {
+      ...this.propTypes,
+      ...props,
+    }
+    return this as unknown as NotionDatabase<T>;
+  }
+
   /**
    * TODO: Handle pagination with Async Iterators later
    */
-  async query(args?: WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>): Promise<PageObjectResponse[]> {
+  // async query(args?: WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>): Promise<PageObjectResponse[]> {
+  async query(args?: any): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
     const response = await this.notion.databases.query({
       database_id: this.databaseId,
       ...args,
     });
-    const results = response.results.filter((page) => NotionPage.isPageObjectResponse(page)) as PageObjectResponse[];
+    const results = response.results.filter(page => NotionPage.isPageObjectResponse(page)) as TypedPageObjectResponse<MapResponseToNotionType<T>>[];
     return results;
   }
 
@@ -70,3 +82,50 @@ export class NotionPage {
     });
   }
 }
+
+// export class JournalNotionDatabase<T extends Record<string, PageProperties['type']> = {}> {
+//   props: T = {} as T;
+
+//   schema<const T extends Record<string, PageProperties['type']>>(prop: T) {
+//     return this as unknown as JournalNotionDatabase<T>;
+//   }
+
+//   validate() {
+//     console.log('Validating schema');
+//     return this;
+//   }
+
+//   build() {
+//     this.validate();
+//     return this as JournalNotionDatabase<T>;
+//   }
+
+//   query(): MapResponseToNotionType<T>[] {
+//     return [] as any[];
+//   }
+// }
+
+type MapResponseToNotionType<T extends Record<string, PageProperties['type']>> = {
+  [K in keyof T]: MapTypeToNotionType<T[K]>;
+};
+
+type MapTypeToNotionType<T extends PageProperties['type']> = T extends NumberProp['type']
+  ? NumberProp
+  : T extends TitleProp['type']
+  ? TitleProp
+  : T extends DateProp['type']
+  ? DateProp
+  : never;
+
+// export const db = new JournalNotionDatabase()
+//   .schema({
+//     Name: 'title',
+//     Date: 'date',
+//     Number: 'number',
+//   })
+//   .build();
+
+// const pages = db.query();
+// for (const page of pages) {
+//   console.log(page['Date'].date?.start);
+// }
