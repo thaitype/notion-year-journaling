@@ -1,2 +1,2 @@
-export * from './notion-database-client';
+export * from './notion-database';
 export * from './types';

@@ -1,12 +1,11 @@
 import { Client as NotionClient } from '@notionhq/client';
-import { QueryDatabaseParameters, PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import {
+import type { QueryDatabaseParameters, PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import type {
+  CommonTypeFilter,
   MapResponseToNotionType,
   MapTypePropertyFilter,
   PageProperties,
-  PropertyFilter,
   TypedPageObjectResponse,
-  TypedQueryDatabaseParameters,
   WithAuth,
 } from './types';
 
@@ -15,6 +14,9 @@ export type InferNotionDatabase<T> = NotionDatabase<InferPropTypes<T>>;
 
 // export type NotionDatabaseQueryArgs<T extends Record<string, PageProperties['type']>> = WithAuth<Omit<TypedQueryDatabaseParameters<T>, 'database_id'>>;
 export type NotionDatabaseQueryArgs = WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>;
+export type QueryPredidcate<T extends Record<string, PageProperties['type']>> = (
+  props: MapTypePropertyFilter<T>
+) => NotionDatabaseQueryArgs;
 
 export class NotionDatabase<T extends Record<string, PageProperties['type']> = Record<string, PageProperties['type']>> {
   propTypes: T = {} as T;
@@ -50,7 +52,7 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
 
     const response = await this.notion.databases.retrieve({ database_id: this.databaseId });
     const remoteProps = response.properties;
-    for (const [propName, propValue] of Object.entries(this.propTypes)) {
+    for (const [propName, propType] of Object.entries(this.propTypes)) {
       if (!remoteProps[propName]) {
         throw new Error(`No property "${propName}" defined in Notion Database Properties`);
       }
@@ -60,9 +62,9 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
         );
       }
 
-      if (propValue !== remoteProps[propName]?.type) {
+      if (propType !== remoteProps[propName]?.type) {
         throw new Error(
-          `The property "${propName}" don't match type, (Expected: "${propValue}", Actual: "${remoteProps[propName]?.type}")`
+          `The property "${propName}" don't match type, (Expected: "${propType}", Actual: "${remoteProps[propName]?.type}")`
         );
       }
     }
@@ -74,19 +76,36 @@ export class NotionDatabase<T extends Record<string, PageProperties['type']> = R
    * TODO: Handle pagination with Async Iterators later
    */
   async query(
-    func?: (props: MapTypePropertyFilter<T>) => NotionDatabaseQueryArgs
+    func?: QueryPredidcate<T> | NotionDatabaseQueryArgs
   ): Promise<TypedPageObjectResponse<MapResponseToNotionType<T>>[]> {
-    // Make sure the propType is correct
     await this.validate();
     const response = await this.notion.databases.query({
       database_id: this.databaseId,
-      // TODO: Convert type later, FIX ME!!
-      ...(func as any),
+      ...(this.processQueryPredicate(func) ?? {}),
     });
     const results = response.results.filter(page => NotionPage.isPageObjectResponse(page)) as TypedPageObjectResponse<
       MapResponseToNotionType<T>
     >[];
     return results;
+  }
+
+  protected processQueryPredicate(
+    funcOrArgs?: QueryPredidcate<T> | NotionDatabaseQueryArgs
+  ): NotionDatabaseQueryArgs | undefined {
+    if (funcOrArgs === undefined) return undefined;
+    if (typeof funcOrArgs !== 'function') return funcOrArgs;
+    const injectProps: Record<string, unknown> = {};
+    for (const [propName, propType] of Object.entries(this.propTypes)) {
+      injectProps[propName] = {
+        filter: (filterProp: Record<string, unknown>) =>
+          ({
+            ...filterProp,
+            property: propName,
+            type: propType,
+          } as CommonTypeFilter),
+      };
+    }
+    return funcOrArgs(injectProps as MapTypePropertyFilter<T>);
   }
 
   get page() {

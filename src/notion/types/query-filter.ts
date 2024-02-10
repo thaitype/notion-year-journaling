@@ -13,7 +13,7 @@ export type TypedQueryDatabaseParameters<T extends Record<string, PageProperties
 export type MapTypePropertyFilter<T extends Record<string, PageProperties['type']>> = {
   [K in keyof T]: {
     filter: (args: Omit<MapTypeToNotionType<T[K], K>, 'property' | 'type'>) => MapTypeToNotionType<T[K], K>;
-  }
+  };
 };
 
 type MapTypeToNotionType<TType extends PageProperties['type'], TProp extends keyof any> = TType extends NonNullable<
@@ -23,7 +23,6 @@ type MapTypeToNotionType<TType extends PageProperties['type'], TProp extends key
   : TType extends NonNullable<DatePropFilter<TType>['type']>
   ? DatePropFilter<TProp>
   : never;
-
 
 // type MapTypeToNotionType<T extends PageProperties['type']> = T extends NonNullable<
 //   NumberPropFilter<T>['type']
@@ -67,6 +66,10 @@ export type TypedQueryFilterArgs<T extends Record<string, PageProperties['type']
   | TimestampCreatedTimeFilter
   | TimestampLastEditedTimeFilter;
 
+export interface CommonTypeFilter {
+  property: string;
+  type: string;
+}
 
 // TODO: Fix TProp later, it should be only string
 
@@ -77,7 +80,7 @@ export interface NumberPropFilter<TProp extends keyof any = string> {
 }
 
 // TODO: Fix TProp later, it should be only string
-export interface DatePropFilter<TProp extends  keyof any = string> {
+export interface DatePropFilter<TProp extends keyof any = string> {
   date: DatePropertyFilter;
   property: TProp;
   type: 'date';
