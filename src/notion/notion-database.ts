@@ -17,27 +17,32 @@ export type QueryPredidcate<T extends Record<string, PageProperties['type']>> = 
   props: MapTypePropertyFilter<T>
 ) => NotionDatabaseQueryArgs;
 
+export interface NotionDatabaseOptions<T extends Record<string, PageProperties['type']>> {
+  notionClient: NotionClient;
+  databaseId: string;
+  propTypes?:T;
+}
+
 export class NotionDatabase<T extends Record<string, PageProperties['type']> = Record<string, PageProperties['type']>> {
   propTypes: T = {} as T;
+  public readonly notion: NotionClient;
+  public readonly databaseId: string
 
   constructor(
-    /**
-     * The Notion Client
-     */
-    public readonly notion: NotionClient,
-    /**
-     * The database id
-     */
-    public readonly databaseId: string
-  ) {}
-
-  setPropTypes<const T extends Record<string, PageProperties['type']>>(props: T) {
-    this.propTypes = {
-      ...this.propTypes,
-      ...props,
-    };
-    return this as unknown as NotionDatabase<T>;
+    public readonly option: NotionDatabaseOptions<T>
+  ) {
+    this.notion = option.notionClient;
+    this.databaseId = option.databaseId;
+    this.propTypes = option.propTypes ?? {} as T;
   }
+
+  // setPropTypes<const T extends Record<string, PageProperties['type']>>(props: T) {
+  //   this.propTypes = {
+  //     ...this.propTypes,
+  //     ...props,
+  //   };
+  //   return this as unknown as NotionDatabase<T>;
+  // }
 
   /**
    * Make sure the propType is correct

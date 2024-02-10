@@ -4,9 +4,17 @@ import { schema } from './schema';
 
 export const env = schema.parse(process.env);
 const notion = new NotionClient({ auth: env.NOTION_KEY });
-export const dailyJournalDb = new NotionDatabase(notion, env.DAILY_JOURNAL_DATABASE_ID).setPropTypes({
-  Name: 'title',
-  Date: 'date'
-});
+export const dailyJournalDb = new NotionDatabase({
+  notionClient: notion,
+  databaseId: env.DAILY_JOURNAL_DATABASE_ID,
+  propTypes: {
+    Name: 'title',
+    Date: 'date'
+  }
+})
+// .setPropTypes({
+//   Name: 'title',
+//   Date: 'date'
+// });
 
 export type DailyJournalDatabase = InferNotionDatabase<typeof dailyJournalDb>;
