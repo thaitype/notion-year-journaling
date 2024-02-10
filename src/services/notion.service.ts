@@ -33,17 +33,17 @@ export class YearJournalService {
     const pages = await this.dailyJournalDb.query(props => ({
       filter: {
         and: [
-          props['Date'].rule({
+          props['Date'].filter({
             date: {
               is_not_empty: true,
             },
           }),
-          props['Date'].rule({
+          props['Date'].filter({
             date: {
               on_or_after: dayjs(new Date()).subtract(numberPassedDays, 'day').toISOString(),
             },
           }),
-          props['Date'].rule({
+          props['Date'].filter({
             date: {
               on_or_before: dayjs(new Date()).add(numberFutureDays, 'day').toISOString(),
             },

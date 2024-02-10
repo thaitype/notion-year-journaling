@@ -12,7 +12,7 @@ export type TypedQueryDatabaseParameters<T extends Record<string, PageProperties
 
 export type MapTypePropertyFilter<T extends Record<string, PageProperties['type']>> = {
   [K in keyof T]: {
-    rule: (args: Omit<MapTypeToNotionType<T[K], K>, 'property' | 'type'>) => MapTypeToNotionType<T[K], K>;
+    filter: (args: Omit<MapTypeToNotionType<T[K], K>, 'property' | 'type'>) => MapTypeToNotionType<T[K], K>;
   }
 };
 
