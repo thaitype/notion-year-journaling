@@ -2,16 +2,23 @@ import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { PageProperties } from './notion-database-props';
 
 /**
- * From @notionhq/client
+ * From @notionhq/client, CreatePageBodyParameters['parent']
  */
+export type PageParent =
+  | {
+      page_id: string;
+      type?: 'page_id';
+    }
+  | {
+      database_id: string;
+      type?: 'database_id';
+    };
+
 export type WithAuth<P> = P & {
   auth?: string;
 };
 
-export type TypedPageObjectResponse<T> = Omit<
-PageObjectResponse,
-  'properties'
-> & {
+export type TypedPageObjectResponse<T> = Omit<PageObjectResponse, 'properties'> & {
   properties: T;
 };
 

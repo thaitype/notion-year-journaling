@@ -16,12 +16,15 @@ export default func
   .handler(async ({ trigger, context }) => {
     const numberPassedDays = parseIntOrUndefined(trigger.query.get('numberPassedDays') ?? undefined);
     const numberFutureDays = parseIntOrUndefined(trigger.query.get('numberFutureDays') ?? undefined);
-    const yearJournalService = new YearJournalService(dailyJournalDb, {
-      logger: context,
-    });
+    // const yearJournalService = new YearJournalService(dailyJournalDb, {
+    //   logger: context,
+    // });
     // const result = await yearJournalService.updateDateToTitle({
     //   numberPassedDays,
     //   numberFutureDays,
+    // });
+    // await dailyJournalDb.page.create({
+    //   title: 'Hello World',
     // });
     return {
       body: '',
