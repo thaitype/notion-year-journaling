@@ -1,17 +1,19 @@
 import { Client as NotionClient } from '@notionhq/client';
-import type { QueryDatabaseParameters } from '@notionhq/client/build/src/api-endpoints';
+import type { PageObjectResponse, QueryDatabaseParameters } from '@notionhq/client/build/src/api-endpoints';
 import type {
   CommonTypeFilter,
   MapResponseToNotionType,
   MapTypePropertyFilter,
   PageProperties,
-  TypedPageObjectResponse,
   WithAuth,
 } from './types';
 import { NotionPage } from './notion-page';
 export type InferPropTypes<T> = T extends NotionDatabase<infer U> ? U : never;
 export type InferNotionDatabase<T> = NotionDatabase<InferPropTypes<T>>;
 
+export type TypedPageObjectResponse<T> = Omit<PageObjectResponse, 'properties'> & {
+  properties: T;
+};
 export type NotionDatabaseQueryArgs = WithAuth<Omit<QueryDatabaseParameters, 'database_id'>>;
 export type QueryPredidcate<T extends Record<string, PageProperties['type']>> = (
   props: MapTypePropertyFilter<T>

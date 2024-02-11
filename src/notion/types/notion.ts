@@ -2,14 +2,8 @@
  * This file is hardcopy from @notionhq/client, due to the limitation of the type export
  */
 
-import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-
 export type WithAuth<P> = P & {
   auth?: string;
-};
-
-export type TypedPageObjectResponse<T> = Omit<PageObjectResponse, 'properties'> & {
-  properties: T;
 };
 
 // Utils type From @notionhq/client
