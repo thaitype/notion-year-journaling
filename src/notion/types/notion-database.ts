@@ -6,23 +6,9 @@ import { ExtractRecordValue } from './utils';
 // From @notionhq/client
 export type PageProperties = ExtractRecordValue<PageObjectResponse['properties']>;
 
-export interface NumberProp {
-  type: 'number';
-  number: number | null;
-  id: string;
-}
-
-export interface DateProp {
-  type: 'date';
-  date: DateResponse | null;
-  id: string;
-}
-
-export interface TitleProp {
-  type: 'title';
-  title: Array<RichTextItemResponse>;
-  id: string;
-}
+export type NumberProp = Extract<PageProperties, { type: 'number' }>;
+export type DateProp = Extract<PageProperties, { type: 'date' }>;
+export type TitleProp = Extract<PageProperties, { type: 'title' }>;
 
 /**
  * The redefined type is still matched the original type

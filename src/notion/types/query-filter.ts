@@ -1,6 +1,6 @@
 import { QueryDatabaseParameters } from '@notionhq/client/build/src/api-endpoints';
 import { Expect, ExpectExtends } from './type-check';
-import { PageProperties } from './notion-database-props';
+import { PageProperties } from './notion-database';
 
 export type QueryFilterArgs = QueryDatabaseParameters['filter'];
 

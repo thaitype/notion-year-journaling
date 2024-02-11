@@ -1,7 +1,6 @@
 import { CreatePageParameters } from '@notionhq/client/build/src/api-endpoints';
 import { ExtractRecordValue } from './utils';
-import { PageProperties, TitleProp } from './notion-database-props';
-import { DateRequest } from './notion';
+import { PageProperties } from './notion-database';
 import { Expect, ExpectExtends } from './type-check';
 
 // From @notionhq/client
@@ -35,5 +34,6 @@ export type TitlePropCreatePage = Extract<CreatePageProperties, { type?: 'title'
  */
 type Test = [
   Expect<ExpectExtends<CreatePageProperties, NumberPropCreatePage>>,
-  Expect<ExpectExtends<CreatePageProperties, DatePropCreatePage>>
+  Expect<ExpectExtends<CreatePageProperties, DatePropCreatePage>>,
+  Expect<ExpectExtends<CreatePageProperties, TitlePropCreatePage>>
 ];

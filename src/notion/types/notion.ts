@@ -1,5 +1,4 @@
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import { PageProperties } from './notion-database-props';
 
 /**
  * From @notionhq/client, CreatePageBodyParameters['parent']
