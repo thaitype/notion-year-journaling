@@ -1,8 +1,8 @@
 import { PageObjectResponse, RichTextItemResponse } from '@notionhq/client/build/src/api-endpoints';
 import { DateResponse } from './notion';
 import { Expect, ExpectExtends } from './type-check';
+import { ExtractRecordValue } from './utils';
 
-export type ExtractRecordValue<T> = T extends Record<string, infer U> ? U : never;
 // From @notionhq/client
 export type PageProperties = ExtractRecordValue<PageObjectResponse['properties']>;
 
@@ -24,7 +24,9 @@ export interface TitleProp {
   id: string;
 }
 
-// Unit test
+/**
+ * The redefined type is still matched the original type
+ */
 type Test = [
   Expect<ExpectExtends<PageProperties, NumberProp>>,
   Expect<ExpectExtends<PageProperties, DateProp>>,

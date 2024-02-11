@@ -62,6 +62,24 @@ export class YearJournalService {
       }
       this.logger.info(`Updating title of date: ${dateString} to '${newTitle}', with id: ${page.id}`);
       await this.dailyJournalDb.page.updateTitle({ pageId: page.id, title: newTitle });
+      await this.dailyJournalDb.page.create(prop => ({
+        properties: {
+          ...prop['Name'].value({
+            title: [
+              {
+                text: {
+                  content: newTitle,
+                },
+              },
+            ],
+          }),
+          ...prop['Date'].value({
+            date: {
+              start: '2022-01-01',
+            },
+          }),
+        },
+      }));
       this.logger.info(`Updated title`);
     }
     return `Updated ${numberPassedDays} days before and ${numberFutureDays} days after today, please check your Notion database.`;

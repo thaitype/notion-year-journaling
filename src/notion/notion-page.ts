@@ -1,9 +1,12 @@
 import { Client as NotionClient } from '@notionhq/client';
-import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import type { PageParent, PageProperties } from './types';
+import type { CreatePageParameters, PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import type { MapTypeCreatePageProperties, PageParent, PageProperties } from './types';
 import invariant from 'tiny-invariant';
 
-export type PropertyPredidcate<T extends Record<string, PageProperties['type']>> = (props: any) => any;
+export type CreatePageArgs = Omit<CreatePageParameters, 'parent'>;
+export type CreatePagePredidcate<T extends Record<string, PageProperties['type']>> = (
+  props: MapTypeCreatePageProperties<T>
+) => CreatePageArgs;
 
 export interface NotionPageOptions<T extends Record<string, PageProperties['type']>> {
   notionClient: NotionClient;
@@ -54,21 +57,22 @@ export class NotionPage<T extends Record<string, PageProperties['type']> = Recor
    *
    * Ref: https://developers.notion.com/reference/post-page
    */
-  create(args: { title: string }) {
+  // create(args: { title: string }) {
+  create(funcOrArgs: CreatePagePredidcate<T> | CreatePageArgs) {
     invariant(this.parent, `Parent is required to create a page`);
     return this.notion.pages.create({
       parent: this.parent,
-      properties: {
-        Name: {
-          title: [
-            {
-              text: {
-                content: args.title,
-              },
-            },
-          ],
-        },
-      },
+      ...this.processCreatePredidcate(funcOrArgs),
     });
+  }
+
+  protected processCreatePredidcate(funcOrArgs: CreatePagePredidcate<T> | CreatePageArgs): CreatePageArgs {
+    if (typeof funcOrArgs !== 'function') {
+      return funcOrArgs;
+    }
+    const injectProps: Record<string, unknown> = {};
+    throw new Error(`Not implemented`);
+
+    // return funcOrArgs(injectProps as );
   }
 }
